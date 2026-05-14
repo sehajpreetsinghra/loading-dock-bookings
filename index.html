@@ -91,8 +91,25 @@
               <option>Maintenance</option>
             </select>
           </label>
+          <label>Delivery Route
+            <select name="route" required>
+              <option>Dock Corridor A > Freight Vestibule</option>
+              <option>Dock Corridor B > Service Hall</option>
+              <option>South Service Route > Freight Corridor</option>
+            </select>
+          </label>
+          <label>Prearranged with Property Management
+            <select name="prearranged" required><option>No</option><option>Yes</option></select>
+          </label>
+          <label>Large Delivery Category
+            <select name="sizeCategory" required><option>Roll on / Roll off</option><option>Freight</option><option>Furniture</option><option>Equipment</option><option>Large Packages</option></select>
+          </label>
+          <label>Heavy Articles
+            <select name="heavyArticles" required><option>No</option><option>Yes</option></select>
+          </label>
           <label class="full">Notes <textarea name="notes" rows="3"></textarea></label>
           <label class="full">Attachments <input type="file" name="attachments" multiple /></label>
+          <label class="full policy-check"><input type="checkbox" name="acknowledgedPolicy" value="Yes" required /> I acknowledge and agree to all Landlord delivery, route, freight elevator, loading dock, and safety rules.</label>
           <button class="btn full" type="submit">Submit Request</button>
         </form>
       </div>

@@ -10,10 +10,10 @@ const views = [
 ];
 
 const navByRole = {
-  Tenant: ["tenant-dashboard", "new-booking", "my-requests", "calendar"],
+  Tenant: ["tenant-dashboard", "new-booking", "my-requests", "calendar", "settings"],
   Security: ["admin-approval", "calendar", "activity-log", "settings"],
   "Property Management": ["tenant-dashboard", "admin-approval", "calendar", "activity-log", "settings"],
-  Operations: ["calendar", "activity-log"],
+  Operations: ["calendar", "activity-log", "settings"],
 };
 
 const state = {
@@ -35,6 +35,10 @@ const state = {
       notes: "Palletized office supplies",
       attachments: 1,
       status: "Pending",
+      route: "Dock Corridor A > Freight Vestibule",
+      sizeCategory: "Roll on / Roll off",
+      heavyArticles: "No",
+      acknowledgedPolicy: true,
     },
   ],
   activity: ["System initialized."],
@@ -47,7 +51,7 @@ const titleMap = {
   "admin-approval": ["Admin Approval Dashboard", "Review and process incoming requests."],
   calendar: ["Calendar View", "Shared operations calendar for all booking activity."],
   "activity-log": ["Activity Log", "Chronological audit of booking actions."],
-  settings: ["Settings & Resources", "Manage building resources and notification defaults."],
+  settings: ["Settings & Resources", "Landlord delivery rules, safety, resources, and operating constraints."],
   login: ["Login", "Secure access for tenants and operations teams."],
 };
 
@@ -123,11 +127,34 @@ function renderNewBooking() {
     e.preventDefault();
     const form = new FormData(e.target);
     const booking = Object.fromEntries(form.entries());
+
+    const requestedStart = Number((booking.startTime || "").replace(":", ""));
+    const requestedEnd = Number((booking.endTime || "").replace(":", ""));
+    const restrictedHours = requestedStart < 600 || requestedEnd > 1800;
+
+    if (!booking.acknowledgedPolicy) {
+      alert("You must acknowledge the delivery and loading dock policy before submitting.");
+      return;
+    }
+    if (booking.resource === "Passenger Elevator") {
+      alert("Large deliveries are not permitted in passenger elevators.");
+      return;
+    }
+    if (restrictedHours && booking.prearranged !== "Yes") {
+      alert("Bookings outside 6:00 AM – 6:00 PM require prearrangement with Property Management.");
+      return;
+    }
+
     booking.id = `BKG-${1000 + state.bookings.length + 1}`;
     booking.status = "Pending";
     booking.attachments = form.getAll("attachments").filter((f) => f.name).length;
+    booking.outsideBusinessHours = restrictedHours ? "Yes" : "No";
+
     state.bookings.unshift(booking);
     state.activity.unshift(`Booking ${booking.id} submitted by ${booking.tenantName}. Email notice sent.`);
+    if (restrictedHours) state.activity.unshift(`Booking ${booking.id} flagged for after-hours prearrangement review.`);
+    if (booking.heavyArticles === "Yes") state.activity.unshift(`Booking ${booking.id} includes heavy article movement and requires landlord consent.`);
+
     e.target.reset();
     renderAll();
     goTo("my-requests");
@@ -205,7 +232,29 @@ function renderActivity() {
 
 function renderSettings() {
   document.getElementById("view-settings").innerHTML = `<div class="card"><h3>Resources</h3>
-  <ul><li>Loading Dock 1</li><li>Loading Dock 2</li><li>Loading Dock 3</li><li>Service Elevator</li></ul>
+  <ul><li>Loading Dock 1</li><li>Loading Dock 2</li><li>Loading Dock 3</li><li>Service Elevator (Freight)</li></ul>
+  <h3>Core Rules</h3>
+  <ul>
+    <li>Deliveries must only use routes designated by Landlord.</li>
+    <li>Furniture, equipment, and substantial supplies must use loading dock + freight elevator under building staff supervision.</li>
+    <li>No storage in common areas, pathways, dock, parking, or sidewalks.</li>
+    <li>Tenant is responsible for delivery-caused damage repair costs.</li>
+    <li>Delivery vehicles must use only Landlord-designated areas.</li>
+  </ul>
+  <h3>Dock & Freight Operations</h3>
+  <ul>
+    <li>Loading dock operating hours are 6:00 AM – 6:00 PM unless prearranged in writing.</li>
+    <li>Large deliveries are prearranged and prohibited on passenger elevators.</li>
+    <li>Only roll-on / roll-off deliveries are permitted during normal business hours unless preapproved otherwise.</li>
+    <li>Maximum 60-minute dock occupancy unless approved by Property Management.</li>
+    <li>Vehicles must be powered off during loading/unloading and follow posted signs and dock staff direction.</li>
+  </ul>
+  <h3>Safety & Equipment</h3>
+  <ul>
+    <li>Hand trucks/carts require non-damaging pneumatic rubber tires and side guards.</li>
+    <li>Dock leveler safety signs, limits, post-use inspection, cleaning, and secured return position are mandatory.</li>
+    <li>Heavy equipment, safes, UPS, batteries, and similar articles require Landlord consent and may require engineer-designated placement.</li>
+  </ul>
   <h3>Email Notifications</h3><p>Automatic emails are sent on submission, approval, denial, and proposed alternatives.</p>
   <h3>Statuses</h3><p>Pending, Approved, Denied, Alternative Time Proposed, Cancelled, Completed.</p>
   </div>`;
