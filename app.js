@@ -29,7 +29,7 @@ const state = {
       requestedDate: "2026-05-15",
       startTime: "09:00",
       endTime: "10:00",
-      resource: "Loading Dock 1",
+      resource: "Loading Dock 1 (LD1)",
       vendor: "Metro Freight",
       deliveryType: "Delivery",
       notes: "Palletized office supplies",
@@ -38,6 +38,7 @@ const state = {
       route: "Dock Corridor A > Freight Vestibule",
       sizeCategory: "Roll on / Roll off",
       heavyArticles: "No",
+      dockLevelerRequired: "No",
       acknowledgedPolicy: true,
     },
   ],
@@ -144,6 +145,22 @@ function renderNewBooking() {
       alert("Bookings outside 6:00 AM – 6:00 PM require prearrangement with Property Management.");
       return;
     }
+    if (booking.dockLevelerRequired === "Yes" && booking.resource !== "Loading Dock 3 (LD3 - Dock Leveler)") {
+      alert("Dock leveler operations are only available at Loading Dock 3 (LD3).");
+      return;
+    }
+
+    const overlapsExisting = state.bookings.some((existing) =>
+      existing.requestedDate === booking.requestedDate &&
+      existing.resource === booking.resource &&
+      booking.startTime < existing.endTime && booking.endTime > existing.startTime &&
+      existing.status !== "Denied" && existing.status !== "Cancelled" && existing.status !== "Completed"
+    );
+
+    if (overlapsExisting) {
+      alert("That resource is already reserved for an overlapping time window. Please select a different time or resource.");
+      return;
+    }
 
     booking.id = `BKG-${1000 + state.bookings.length + 1}`;
     booking.status = "Pending";
@@ -154,6 +171,7 @@ function renderNewBooking() {
     state.activity.unshift(`Booking ${booking.id} submitted by ${booking.tenantName}. Email notice sent.`);
     if (restrictedHours) state.activity.unshift(`Booking ${booking.id} flagged for after-hours prearrangement review.`);
     if (booking.heavyArticles === "Yes") state.activity.unshift(`Booking ${booking.id} includes heavy article movement and requires landlord consent.`);
+    if (booking.dockLevelerRequired === "Yes") state.activity.unshift(`Booking ${booking.id} includes dock leveler use (LD3) and needs dock safety compliance review.`);
 
     e.target.reset();
     renderAll();
@@ -232,7 +250,7 @@ function renderActivity() {
 
 function renderSettings() {
   document.getElementById("view-settings").innerHTML = `<div class="card"><h3>Resources</h3>
-  <ul><li>Loading Dock 1</li><li>Loading Dock 2</li><li>Loading Dock 3</li><li>Service Elevator (Freight)</li></ul>
+  <ul><li>Loading Dock 1 (LD1)</li><li>Loading Dock 2 (LD2)</li><li>Loading Dock 3 (LD3 - includes dock leveler)</li><li>Service Elevator (single shared freight elevator)</li></ul>
   <h3>Core Rules</h3>
   <ul>
     <li>Deliveries must only use routes designated by Landlord.</li>
@@ -252,7 +270,7 @@ function renderSettings() {
   <h3>Safety & Equipment</h3>
   <ul>
     <li>Hand trucks/carts require non-damaging pneumatic rubber tires and side guards.</li>
-    <li>Dock leveler safety signs, limits, post-use inspection, cleaning, and secured return position are mandatory.</li>
+    <li>Dock leveler is available only at LD3; safety signs, limits, post-use inspection, cleaning, and secured return position are mandatory.</li>
     <li>Heavy equipment, safes, UPS, batteries, and similar articles require Landlord consent and may require engineer-designated placement.</li>
   </ul>
   <h3>Email Notifications</h3><p>Automatic emails are sent on submission, approval, denial, and proposed alternatives.</p>

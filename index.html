@@ -75,10 +75,10 @@
           <label>End Time <input type="time" name="endTime" required /></label>
           <label>Resource
             <select name="resource" required>
-              <option>Loading Dock 1</option>
-              <option>Loading Dock 2</option>
-              <option>Loading Dock 3</option>
-              <option>Service Elevator</option>
+              <option>Loading Dock 1 (LD1)</option>
+              <option>Loading Dock 2 (LD2)</option>
+              <option>Loading Dock 3 (LD3 - Dock Leveler)</option>
+              <option>Service Elevator (Only One)</option>
             </select>
           </label>
           <label>Vendor / Company <input name="vendor" required /></label>
@@ -106,6 +106,9 @@
           </label>
           <label>Heavy Articles
             <select name="heavyArticles" required><option>No</option><option>Yes</option></select>
+          </label>
+          <label>Dock Leveler Required
+            <select name="dockLevelerRequired" required><option>No</option><option>Yes</option></select>
           </label>
           <label class="full">Notes <textarea name="notes" rows="3"></textarea></label>
           <label class="full">Attachments <input type="file" name="attachments" multiple /></label>
