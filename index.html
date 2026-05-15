@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loading Dock Bookings</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <h1>DockOps</h1>
+          <p>Commercial Booking Portal</p>
+        </div>
+        <nav class="nav" id="main-nav"></nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar card">
+          <div>
+            <h2 id="page-title">Login</h2>
+            <p id="page-subtitle">Secure access for tenants and operations teams.</p>
+          </div>
+          <div class="topbar-right">
+            <span class="badge" id="active-role-badge">Guest</span>
+            <button class="btn btn-secondary" id="logout-btn" hidden>Logout</button>
+          </div>
+        </header>
+
+        <section id="view-login" class="view active-view">
+          <div class="card form-card">
+            <h3>Login</h3>
+            <p>Select a role to preview role-based access and workflows.</p>
+            <form id="login-form" class="grid-form">
+              <label>Email
+                <input type="email" id="login-email" placeholder="name@company.com" required />
+              </label>
+              <label>Password
+                <input type="password" id="login-password" placeholder="••••••••" required />
+              </label>
+              <label>Role
+                <select id="login-role" required>
+                  <option value="Tenant">Tenant</option>
+                  <option value="Security">Security</option>
+                  <option value="Property Management">Property Management</option>
+                  <option value="Operations">Operations</option>
+                </select>
+              </label>
+              <button type="submit" class="btn">Sign in</button>
+            </form>
+          </div>
+        </section>
+
+        <section id="view-tenant-dashboard" class="view"></section>
+        <section id="view-new-booking" class="view"></section>
+        <section id="view-my-requests" class="view"></section>
+        <section id="view-admin-approval" class="view"></section>
+        <section id="view-calendar" class="view"></section>
+        <section id="view-activity-log" class="view"></section>
+        <section id="view-settings" class="view"></section>
+      </main>
+    </div>
+
+    <template id="new-booking-template">
+      <div class="card form-card">
+        <h3>Create New Booking Request</h3>
+        <form id="booking-form" class="grid-form two-col">
+          <label>Tenant Name <input name="tenantName" required /></label>
+          <label>Company <input name="company" required /></label>
+          <label>Email <input type="email" name="email" required /></label>
+          <label>Phone <input name="phone" required /></label>
+          <label>Requested Date <input type="date" name="requestedDate" required /></label>
+          <label>Start Time <input type="time" name="startTime" required /></label>
+          <label>End Time <input type="time" name="endTime" required /></label>
+          <label>Resource
+            <select name="resource" required>
+              <option>Loading Dock 1 (LD1)</option>
+              <option>Loading Dock 2 (LD2)</option>
+              <option>Loading Dock 3 (LD3 - Dock Leveler)</option>
+              <option>Service Elevator (Only One)</option>
+            </select>
+          </label>
+          <label>Vendor / Company <input name="vendor" required /></label>
+          <label>Delivery Type
+            <select name="deliveryType" required>
+              <option>Major Delivery / Move</option>
+              <option>Event Setup</option>
+              <option>Construction Delivery</option>
+              <option>Minor Courier Delivery</option>
+            </select>
+          </label>
+          <label>Delivery Route
+            <select name="route" required>
+              <option>Dock Corridor A > Freight Vestibule</option>
+              <option>Dock Corridor B > Service Hall</option>
+              <option>South Service Route > Freight Corridor</option>
+            </select>
+          </label>
+          <label>Prearranged with Property Management
+            <select name="prearranged" required><option>No</option><option>Yes</option></select>
+          </label>
+          <label>Large Delivery Category
+            <select name="sizeCategory" required><option>Roll on / Roll off</option><option>Freight</option><option>Furniture</option><option>Equipment</option><option>Large Packages</option></select>
+          </label>
+          <label>Heavy Articles
+            <select name="heavyArticles" required><option>No</option><option>Yes</option></select>
+          </label>
+          <label>Dock Leveler Required
+            <select name="dockLevelerRequired" required><option>No</option><option>Yes</option></select>
+          </label>
+          <label class="full">Notes <textarea name="notes" rows="3"></textarea></label>
+          <label class="full">Attachments <input type="file" name="attachments" multiple /></label>
+          <label class="full policy-check"><input type="checkbox" name="acknowledgedPolicy" value="Yes" required /> I acknowledge and agree to all Landlord delivery, route, freight elevator, loading dock, and safety rules.</label>
+          <button class="btn full" type="submit">Submit Request</button>
+        </form>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
