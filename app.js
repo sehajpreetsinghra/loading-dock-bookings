@@ -16,34 +16,12 @@ const navByRole = {
   Operations: ["calendar", "activity-log", "settings"],
 };
 
-const state = {
-  role: null,
-  email: "",
-  bookings: [
-    {
-      id: "BKG-1001",
-      tenantName: "Alex Martin",
-      company: "Blue Peak Law",
-      email: "alex@bluepeak.com",
-      phone: "555-0134",
-      requestedDate: "2026-05-15",
-      startTime: "09:00",
-      endTime: "10:00",
-      resource: "Loading Dock 1 (LD1)",
-      vendor: "Metro Freight",
-      deliveryType: "Major Delivery / Move",
-      notes: "Palletized office supplies",
-      attachments: 1,
-      status: "Pending",
-      route: "Dock Corridor A > Freight Vestibule",
-      sizeCategory: "Roll on / Roll off",
-      heavyArticles: "No",
-      dockLevelerRequired: "No",
-      requiresServiceElevator: true,
-      acknowledgedPolicy: true,
-    },
-  ],
-  activity: ["System initialized."],
+let state = { role: null, email: "", bookings: [], activity: [], resources: [], rules: { bufferMinutes: 15, deliveryTypeServiceElevatorDefaults: {} } };
+
+const api = {
+  async bootstrap(){ return fetch("/api/bootstrap").then(r=>r.json()); },
+  async createBooking(payload){ return fetch("/api/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).then(r=>r.json()); },
+  async patchBooking(id,payload){ return fetch(`/api/bookings/${id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).then(r=>r.json()); }
 };
 
 const titleMap = {
@@ -80,7 +58,7 @@ logoutBtn.addEventListener("click", () => {
 });
 
 function inferServiceElevatorRequirement(deliveryType) {
-  return ["Major Delivery / Move", "Event Setup", "Construction Delivery"].includes(deliveryType);
+  return !!state.rules.deliveryTypeServiceElevatorDefaults[deliveryType];
 }
 
 function toMinutes(time) {
@@ -142,11 +120,12 @@ function renderNewBooking() {
     booking.attachments = form.getAll("attachments").filter((f) => f.name).length;
     booking.outsideBusinessHours = restrictedHours ? "Yes" : "No";
 
-    state.bookings.unshift(booking);
-    state.activity.unshift(`Booking ${booking.id} submitted by ${booking.tenantName}. Email notice sent.`);
-    e.target.reset();
-    renderAll();
-    goTo("my-requests");
+    api.createBooking(booking).then(() => api.bootstrap()).then((data) => {
+      state = { ...state, ...data, role: state.role, email: state.email };
+      e.target.reset();
+      renderAll();
+      goTo("my-requests");
+    });
   });
 }
 
@@ -158,7 +137,10 @@ window.toggleServiceElevatorRequirement = function (id) {
   const booking = state.bookings.find((b) => b.id === id);
   if (booking.deliveryType !== "Minor Courier Delivery") return alert("Override is only permitted for Minor Courier Delivery.");
   booking.requiresServiceElevator = !booking.requiresServiceElevator;
-  renderAll();
+  api.patchBooking(id, { requiresServiceElevator: booking.requiresServiceElevator }).then(() => api.bootstrap()).then((data) => {
+    state = { ...state, ...data, role: state.role, email: state.email };
+    renderAll();
+  });
 };
 
 window.updateStatus = function (id, status) {
@@ -169,8 +151,10 @@ window.updateStatus = function (id, status) {
     if (conflict.serviceElevator) return alert("Cannot approve. Service Elevator is already reserved for this time window.");
   }
   booking.status = status;
-  state.activity.unshift(`Booking ${id} updated to ${status}. Email notice sent to ${booking.email}.`);
-  renderAll();
+  api.patchBooking(id, { status }).then(() => api.bootstrap()).then((data) => {
+    state = { ...state, ...data, role: state.role, email: state.email };
+    renderAll();
+  });
 };
 
 function renderMyRequests() { const mine = state.role === "Tenant" ? state.bookings.filter((b) => b.email === state.email) : state.bookings; document.getElementById("view-my-requests").innerHTML = `<div class="card"><h3>Requests</h3>${renderBookingsTable(mine)}</div>`; }
@@ -178,3 +162,6 @@ function renderAdmin() { document.getElementById("view-admin-approval").innerHTM
 function renderCalendar() { const groups = state.bookings.reduce((acc, b) => { (acc[b.requestedDate] ||= []).push(b); return acc; }, {}); document.getElementById("view-calendar").innerHTML = `<div class="card"><h3>Booking Calendar</h3><div class="calendar">${Object.entries(groups).map(([day, bookings]) => `<article class="day"><strong>${day}</strong>${bookings.map((b) => `<p>${b.startTime} [${b.resource.includes("LD1") ? "LD1" : b.resource.includes("LD2") ? "LD2" : b.resource.includes("LD3") ? "LD3" : "SE"}${b.requiresServiceElevator ? " + SE" : ""}] – ${b.tenantName} – ${b.vendor}<br><small>${b.status}</small></p>`).join("")}</article>`).join("")}</div></div>`; }
 function renderActivity() { document.getElementById("view-activity-log").innerHTML = `<div class="card"><h3>Activity Log</h3><ul class="activity">${state.activity.map((item) => `<li>${item}</li>`).join("")}</ul></div>`; }
 function renderSettings() { document.getElementById("view-settings").innerHTML = `<div class="card"><h3>Resources</h3><ul><li>Loading Dock 1 (LD1)</li><li>Loading Dock 2 (LD2)</li><li>Loading Dock 3 (LD3 - includes dock leveler)</li><li>Service Elevator (single shared freight elevator)</li></ul></div>`; }
+
+
+api.bootstrap().then((data) => { state = { ...state, ...data }; renderAll(); });

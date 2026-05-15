@@ -1,17 +1,20 @@
 # Loading Dock Bookings Web App
 
-A modern, mobile-friendly booking portal for commercial building loading docks and service elevators.
+Booking portal for LD1, LD2, LD3, and the shared Service Elevator with role-based workflows.
 
-## Features
-- Role-based experience for Tenant, Security, Property Management, and Operations.
-- Tenant request flow with required booking fields and attachments.
-- Delivery policy controls for designated routes, prearranged after-hours access, heavy article declarations, and policy acknowledgment.
-- Approval workflow for Security and Property Management (approve, deny, propose new time).
-- Shared operations calendar and activity log.
-- Resource and notification settings overview with landlord operating rules.
-- Resource-aware scheduling for three docks (LD1, LD2, LD3 with dock leveler) and one shared service elevator, including overlap prevention per resource.
+## What was added
+- Backend server (`server.js`) using Node HTTP APIs.
+- API endpoints for bootstrap data, bookings, booking updates, and rule updates.
+- Centralized backend-managed resources and rules (including 15-minute conflict buffer and service-elevator defaults).
+- Frontend now loads/saves bookings through the backend APIs.
 
 ## Run locally
 1. `cd /workspace/loading-dock-bookings`
-2. `python3 -m http.server 8080`
-3. Visit `http://localhost:8080`
+2. `npm start`
+3. Open `http://localhost:8080`
+
+## API
+- `GET /api/bootstrap`
+- `POST /api/bookings`
+- `PATCH /api/bookings/:id`
+- `PATCH /api/rules`
